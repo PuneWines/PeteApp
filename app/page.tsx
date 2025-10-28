@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AppUser } from '@/components/login-page';
 
 // Import the components for different pages
@@ -33,6 +33,7 @@ import {
   FilePlus,
   BarChart3,
   Archive,
+  Loader2,
 } from 'lucide-react';
 
 // Define mappings for page components, icons, and labels for easy rendering
@@ -57,7 +58,6 @@ const pageLabels: { [key: string]: string } = {
   receiving: 'Daily Expenses',
 };
 
-
 /**
  * This is the main entry point for your application.
  * It now manages user state and displays either the login screen or the
@@ -67,15 +67,51 @@ export default function Page() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [activeView, setActiveView] = useState<string>('');
   const [detailViewData, setDetailViewData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for stored user on component mount
+  useEffect(() => {
+    const checkStoredUser = () => {
+      try {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setCurrentUser(userData);
+          const initialView = userData.pages.includes('dashboard') ? 'dashboard' : userData.pages[0] || '';
+          setActiveView(initialView);
+        }
+      } catch (error) {
+        console.error('Error loading stored user:', error);
+        // Clear invalid stored data
+        localStorage.removeItem('currentUser');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkStoredUser();
+  }, []);
 
   // This function is passed to the LoginPage to handle successful logins
   const handleLogin = (user: AppUser) => {
+    // Store user data in localStorage (without password for security)
+    const userToStore = {
+      id: user.id,
+      name: user.name,
+      role: user.role,
+      pages: user.pages
+    };
+    
+    localStorage.setItem('currentUser', JSON.stringify(userToStore));
+    
     setCurrentUser(user);
     const initialView = user.pages.includes('dashboard') ? 'dashboard' : user.pages[0] || '';
     setActiveView(initialView);
   };
 
   const handleLogout = () => {
+    // Remove user data from localStorage
+    localStorage.removeItem('currentUser');
     setCurrentUser(null);
     setActiveView('');
     setDetailViewData(null);
@@ -90,6 +126,18 @@ export default function Page() {
   const handleBackToReports = () => {
       setDetailViewData(null);
       setActiveView('reports');
+  }
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-purple-100 via-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   // If no user is logged in, render the login page

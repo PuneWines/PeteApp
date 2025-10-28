@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from 'lucide-react';
 
-// --- TYPE DEFINITIONS (No changes to logic) ---
+// --- TYPE DEFINITIONS ---
 export interface AppUser {
   id: string;
   name: string;
@@ -16,7 +16,7 @@ export interface AppUser {
   pages: string[];
 }
 
-// --- SVG ICONS (As per target UI) ---
+// --- SVG ICONS ---
 const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -31,12 +31,11 @@ const LockIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
-// --- CONSTANTS (No changes to logic) ---
+// --- CONSTANTS ---
 const PUBLIC_SHEET_ID_LOGIN = "1-NTfh3VGrhEImrxNVSbDdBmFxTESegykHslL-t3Nf8I";
 const LOGIN_SHEET_NAME = "Login";
 
-// --- LoginPage Component (Logic untouched, UI updated) ---
+// --- LoginPage Component ---
 const LoginPage: React.FC<{ onLogin: (user: AppUser) => void }> = ({ onLogin }) => {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
@@ -69,25 +68,36 @@ const LoginPage: React.FC<{ onLogin: (user: AppUser) => void }> = ({ onLogin }) 
           'receiving': 'receiving',
           'reports': 'reports'
         };
+        
         const fetchedUsers: AppUser[] = jsonData.table.rows.slice(1).map((row: any) => {
-          const id = row.c[1]?.v;
-          const pass = row.c[2]?.v;
-          const role = row.c[3]?.v;
-          const pagesString = row.c[4]?.v;
+          // Corrected column indices based on your sheet structure:
+          // Column 0: Name
+          // Column 1: User Id
+          // Column 2: Password
+          // Column 3: Role
+          // Column 4: Pages
+          const name = row.c[0]?.v; // Name from column 0
+          const id = row.c[1]?.v;   // User Id from column 1
+          const pass = row.c[2]?.v; // Password from column 2
+          const role = row.c[3]?.v; // Role from column 3
+          const pagesString = row.c[4]?.v; // Pages from column 4
+          
           let pages: string[] = [];
           if (pagesString && pagesString.toLowerCase().trim() === "all") {
             pages = allPossiblePages;
           } else if (pagesString) {
             pages = pagesString.split(",").map((p: string) => pageNameMapping[p.trim().toLowerCase()]).filter(Boolean).filter((v: string, i: number, s: string[]) => s.indexOf(v) === i);
           }
+          
           return {
             id: id ? String(id).trim() : '',
-            name: id ? String(id).trim() : '',
+            name: name ? String(name).trim() : '', // Store the actual name from column 0
             password: pass ? String(pass).trim() : '',
             role: role || "user",
             pages: pages,
           };
-        }).filter((user: AppUser) => user.id);
+        }).filter((user: AppUser) => user.id && user.name); // Filter out users without id or name
+
         setUsers(fetchedUsers);
       } catch (err: any) {
         setError(err.message || "An unknown error occurred while fetching user data.");
@@ -111,6 +121,16 @@ const LoginPage: React.FC<{ onLogin: (user: AppUser) => void }> = ({ onLogin }) 
       (user) => user.id === trimmedUserId && user.password === trimmedPassword
     );
     if (foundUser) {
+      // Store ALL user data in localStorage (without password for security)
+      const userToStore = {
+        id: foundUser.id,
+        name: foundUser.name, // This will now be the actual name from column 0
+        role: foundUser.role,
+        pages: foundUser.pages
+      };
+      localStorage.setItem('currentUser', JSON.stringify(userToStore));
+      
+      // Call the onLogin callback
       onLogin(foundUser);
     } else {
       setError("Invalid Username or Password");
@@ -136,12 +156,12 @@ const LoginPage: React.FC<{ onLogin: (user: AppUser) => void }> = ({ onLogin }) 
                 <div className="space-y-2">
                   <Label htmlFor="userId" className="text-slate-600 font-medium flex items-center gap-2 text-sm">
                     <UserIcon className="text-purple-500" />
-                    Username
+                    Username (User ID)
                   </Label>
                   <Input
                     id="userId"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder="Enter your user ID"
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
                     className="bg-slate-50/50 border-slate-300 h-12 text-base focus:border-purple-400 focus:ring-purple-400/50"

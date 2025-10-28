@@ -25,7 +25,7 @@ interface Transaction {
 interface AppUser {
   id: string
   name: string
-  role: "user" | "admin"
+  role: "User" | "Admin" // Changed to match your localStorage
 }
 
 interface DropdownOptions {
@@ -37,7 +37,6 @@ interface DropdownOptions {
 
 interface FormViewProps {
   onAddTransaction?: (transaction: Omit<Transaction, "id" | "personName" | "userId">) => void
-  currentUser: AppUser
 }
 
 // --- Constants ---
@@ -48,15 +47,19 @@ const PUBLIC_SHEET_ID = "1-NTfh3VGrhEImrxNVSbDdBmFxTESegykHslL-t3Nf8I"
 const PUBLIC_SHEET_MASTER_NAME = "Master"
 
 // --- Column INDICES in the "Master" sheet for adding new values ---
+const PERSON_NAME_COLUMN_INDEX = 0 // Column A (0-indexed) - For adding new person names
 const GROUP_HEAD_COLUMN_INDEX = 2 // Column C (0-indexed)
 const REASON_COLUMN_INDEX = 6 // Column G (0-indexed)
 
 const isNonEmptyString = (value: any): value is string => typeof value === "string" && value.trim().length > 0
 
-const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) => {
+const FormView: React.FC<FormViewProps> = ({ onAddTransaction }) => {
   const { toast } = useToast()
+  
+  // Get currentUser from localStorage
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null)
   const [formData, setFormData] = useState({
-    personName: currentUser.name,
+    personName: "",
     date: new Date().toISOString().split("T")[0],
     incoming: "",
     outgoing: "",
@@ -83,6 +86,30 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
   const [isReasonModalOpen, setIsReasonModalOpen] = useState(false)
   const [newReason, setNewReason] = useState("")
   const [isAddingReason, setIsAddingReason] = useState(false)
+  const [isPersonNameModalOpen, setIsPersonNameModalOpen] = useState(false)
+  const [newPersonName, setNewPersonName] = useState("")
+  const [isAddingPersonName, setIsAddingPersonName] = useState(false)
+
+  // Load currentUser from localStorage on component mount
+  useEffect(() => {
+    const loadCurrentUser = () => {
+      try {
+        const raw = localStorage.getItem("currentUser");
+        if (raw) {
+          const user = JSON.parse(raw);
+          setCurrentUser(user);
+          // For regular users, set their name as default
+          if (user.role === "User") { // Changed to "User"
+            setFormData(prev => ({ ...prev, personName: user.name }));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading user from localStorage:", error);
+      }
+    };
+
+    loadCurrentUser();
+  }, []);
 
   const fetchDropdownOptions = async () => {
     setIsLoading(true)
@@ -178,7 +205,7 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
       const targetRowNumber = targetRowIndex + 1
 
       let existingRowData: (string | number)[] = []
-      const maxColumns = Math.max(GROUP_HEAD_COLUMN_INDEX, REASON_COLUMN_INDEX) + 1
+      const maxColumns = Math.max(PERSON_NAME_COLUMN_INDEX, GROUP_HEAD_COLUMN_INDEX, REASON_COLUMN_INDEX) + 1
       if (targetRowIndex < dataRows.length && dataRows[targetRowIndex]) {
         const existingRow = dataRows[targetRowIndex]
         for (let i = 0; i < maxColumns; i++) {
@@ -227,10 +254,11 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
     }
   }
 
+  // Update formData when currentUser changes
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, personName: currentUser.name }))
-    setPhotoFile(null)
-    setFileInputKey(Date.now())
+    if (currentUser?.name && currentUser.role === "User") { // Changed to "User"
+      setFormData(prev => ({ ...prev, personName: currentUser.name }))
+    }
   }, [currentUser])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,6 +277,17 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Check if user is logged in
+    if (!currentUser) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login again.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     setIsSubmitting(true);
     const loadingToast = toast({
       title: "Submitting Transaction...",
@@ -310,6 +349,7 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
         formData.reason,
         photoLink,
         monthName,
+        currentUser.id
       ]
 
       const submitBody = new URLSearchParams({
@@ -338,7 +378,7 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
         })
 
         setFormData({
-          personName: currentUser.name,
+          personName: currentUser.role === "User" ? currentUser.name : "", // Changed to "User"
           date: new Date().toISOString().split("T")[0],
           incoming: "",
           outgoing: "",
@@ -362,6 +402,23 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
       loadingToast.dismiss()
       setIsSubmitting(false);
     }
+  }
+
+  // Show loading state while checking user
+  if (!currentUser) {
+    return (
+      <Card className="border-slate-200/80 rounded-xl">
+        <CardHeader className="bg-purple-50/70 border-b border-purple-200/80">
+          <CardTitle className="text-slate-800 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-purple-600" /> Add New Transaction
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-purple-600" />
+          <p className="mt-2 text-slate-700">Loading user data...</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (isLoading) {
@@ -406,20 +463,43 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
         </CardHeader>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Person Name Field - Different behavior based on role */}
             <div className="space-y-2">
               <Label className="text-slate-700 font-medium">Person Name</Label>
-              <Select
-                value={formData.personName}
-                onValueChange={(value) => handleSelectChange("personName", value)}
-                disabled={currentUser.role !== "admin"}
-              >
-                <SelectTrigger><SelectValue placeholder="Select Person" /></SelectTrigger>
-                <SelectContent>
-                  {dropdownOptions.personName.map((name, index) => (
-                    <SelectItem key={`person-${index}`} value={name}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {currentUser.role === "User" ? ( // Changed to "User"
+                // For regular users - show disabled input with their name
+                <Input 
+                  value={formData.personName} 
+                  disabled 
+                  className="bg-slate-100"
+                />
+              ) : (
+                // For admins - show dropdown with add button
+                <div className="flex items-end space-x-2">
+                  <Select
+                    value={formData.personName}
+                    onValueChange={(value) => handleSelectChange("personName", value)}
+                  >
+                    <SelectTrigger className="flex-grow">
+                      <SelectValue placeholder="Select Person" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownOptions.personName.map((name, index) => (
+                        <SelectItem key={`person-${index}`} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    type="button" 
+                    size="icon" 
+                    variant="outline" 
+                    onClick={() => setIsPersonNameModalOpen(true)} 
+                    className="flex-shrink-0"
+                  >
+                    <PlusCircle className="h-4 w-4 text-purple-600" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -496,6 +576,40 @@ const FormView: React.FC<FormViewProps> = ({ onAddTransaction, currentUser }) =>
           </form>
         </CardContent>
       </Card>
+
+      {/* Add Person Name Modal (Only for Admin) */}
+      <Dialog open={isPersonNameModalOpen} onOpenChange={setIsPersonNameModalOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add New Person Name</DialogTitle></DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="newPersonName">Person Name</Label>
+            <Input 
+              id="newPersonName" 
+              value={newPersonName} 
+              onChange={(e) => setNewPersonName(e.target.value)} 
+              placeholder="Enter new person name" 
+              className="mt-1" 
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPersonNameModalOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700" 
+              onClick={() => handleAddNewOption(
+                newPersonName, 
+                PERSON_NAME_COLUMN_INDEX, 
+                setIsAddingPersonName, 
+                setIsPersonNameModalOpen, 
+                () => setNewPersonName(""), 
+                "Person Name"
+              )} 
+              disabled={isAddingPersonName}
+            >
+              {isAddingPersonName ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Add Person Name
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isGroupHeadModalOpen} onOpenChange={setIsGroupHeadModalOpen}>
         <DialogContent>
