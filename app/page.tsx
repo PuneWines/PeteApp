@@ -54,7 +54,7 @@ const pageLabels: { [key: string]: string } = {
   dashboard: 'Dashboard',
   form: 'Add Entry',
   reports: 'Reports',
-  receiving: 'Receiving',
+  receiving: 'Daily Expenses',
 };
 
 

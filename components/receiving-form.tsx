@@ -435,7 +435,7 @@ const ReceivingPage: React.FC<ReceivingFormProps> = ({ currentUser }) => {
         <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-slate-100">
           <TabsTrigger value="form" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm">
               <FilePlus className="h-4 w-4 mr-2"/>
-              Receiving Form
+              Expense Form
           </TabsTrigger>
           <TabsTrigger value="records" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm">
               <List className="h-4 w-4 mr-2"/>
@@ -447,7 +447,7 @@ const ReceivingPage: React.FC<ReceivingFormProps> = ({ currentUser }) => {
                 <CardHeader className="bg-purple-50 border-b border-purple-200/80">
                     <CardTitle className="text-slate-800 flex items-center gap-2.5">
                         <FilePlus className="h-5 w-5 text-purple-500" />
-                        Create New Receiving Entry
+                        Add Daily Expense
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -460,7 +460,7 @@ const ReceivingPage: React.FC<ReceivingFormProps> = ({ currentUser }) => {
                 <CardHeader className="bg-purple-50 border-b border-purple-200/80">
                     <CardTitle className="text-slate-800 flex items-center gap-2.5">
                         <List className="h-5 w-5 text-purple-500" />
-                        Receiving History
+                        Expenses History
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 md:p-2">
