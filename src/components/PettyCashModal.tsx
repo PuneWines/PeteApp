@@ -39,8 +39,42 @@ interface CategoryAmounts {
   closing: string;
   creditCardCharges: string;
   date: string;
+
 }
 
+
+interface Transaction {
+  id?: string;
+  openingQty: string;
+  teaNasta: string;
+  waterJar: string;
+  lightBill: string;
+  recharge: string;
+  postOffice: string;
+  customerDiscount: string;
+  repairMaintenance: string;
+  stationary: string;
+  incentive: string;
+  breakage: string;
+  breakageName: string; // Add this missing property
+  petrol: string;
+  advance: string;
+  advanceName: string; // Add this missing property
+  excisePolice: string;
+  desiBhada: string;
+  otherPurchaseVoucherNo: string;
+  otherVendorPayment: string;
+  differenceAmount: string;
+  patilPetrol: string;
+  roomExpense: string;
+  officeExpense: string;
+  personalExpense: string;
+  miscExpense: string;
+  closing: string;
+  creditCardCharges: string;
+  date: string;
+  user?: string;
+}
 interface PettyCashModalProps {
   isOpen: boolean;
   onClose: () => void;

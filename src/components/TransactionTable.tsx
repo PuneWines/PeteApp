@@ -1,5 +1,45 @@
 import { FaTrash, FaCheckCircle, FaClock } from 'react-icons/fa';
-import { Transaction } from '../types';
+// import { Transaction } from '../types';
+
+interface Transaction {
+  id?: string;
+  openingQty: string;
+  teaNasta: string;
+  waterJar: string;
+  lightBill: string;
+  recharge: string;
+  postOffice: string;
+  customerDiscount: string;
+  repairMaintenance: string;
+  stationary: string;
+  incentive: string;
+  breakage: string;
+  petrol: string;
+  advance: string;
+  excisePolice: string;
+  desiBhada: string;
+  otherPurchaseVoucherNo: string;
+  otherVendorPayment: string;
+  differenceAmount: string;
+  patilPetrol: string;
+  roomExpense: string;
+  officeExpense: string;
+  personalExpense: string;
+  miscExpense: string;
+  closing: string;
+  creditCardCharges: string;
+  date: string;
+  user?: string; // Optional for mock data
+  category: string;
+  description: string;
+
+  amount:number;
+  status: string;
+  remarks: string;
+  
+
+
+}
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -70,7 +110,7 @@ export default function TransactionTable({ transactions, onDelete }: Transaction
                 </td>
               </tr>
             ) : (
-              transactions.map((transaction) => (
+              transactions.map((transaction: any) => (
                 <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                     {formatDate(transaction.date)}

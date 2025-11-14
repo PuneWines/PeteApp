@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { FaHistory, FaTimes } from "react-icons/fa";
 import PettyCashModal from "../components/PettyCashModal";
 import CashTally from "./CashTally";
 // import { Transaction } from "../types";
@@ -17,8 +16,10 @@ interface Transaction {
   stationary: string;
   incentive: string;
   breakage: string;
+  breakageName: string; // Add this missing property
   petrol: string;
   advance: string;
+  advanceName: string; // Add this missing property
   excisePolice: string;
   desiBhada: string;
   otherPurchaseVoucherNo: string;
@@ -32,132 +33,44 @@ interface Transaction {
   closing: string;
   creditCardCharges: string;
   date: string;
-  user?: string; // Optional for mock data
+  user?: string;
 }
 
 export default function TransactionHistory() {
   // Mock data for transaction history
   const dummyTransactions: Transaction[] = [
-    {
-      id: "TXN-1736899200000",
-      date: "2025-01-15",
-      openingQty: "1000.00",
-      teaNasta: "50.00",
-      waterJar: "20.00",
-      lightBill: "100.00",
-      recharge: "0.00",
-      postOffice: "0.00",
-      customerDiscount: "0.00",
-      repairMaintenance: "0.00",
-      stationary: "30.00",
-      incentive: "0.00",
-      breakage: "0.00",
-      petrol: "200.00",
-      advance: "0.00",
-      excisePolice: "0.00",
-      desiBhada: "0.00",
-      otherPurchaseVoucherNo: "",
-      otherVendorPayment: "0.00",
-      differenceAmount: "0.00",
-      patilPetrol: "0.00",
-      roomExpense: "0.00",
-      officeExpense: "50.00",
-      personalExpense: "0.00",
-      miscExpense: "0.00",
-      closing: "850.00",
-      creditCardCharges: "0.00",
-      user: "John Doe",
-    },
-    {
-      id: "TXN-1736812800000",
-      date: "2025-01-14",
-      openingQty: "1200.00",
-      teaNasta: "60.00",
-      waterJar: "25.00",
-      lightBill: "0.00",
-      recharge: "50.00",
-      postOffice: "30.00",
-      customerDiscount: "100.00",
-      repairMaintenance: "0.00",
-      stationary: "0.00",
-      incentive: "0.00",
-      breakage: "0.00",
-      petrol: "0.00",
-      advance: "200.00",
-      excisePolice: "0.00",
-      desiBhada: "0.00",
-      otherPurchaseVoucherNo: "",
-      otherVendorPayment: "0.00",
-      differenceAmount: "0.00",
-      patilPetrol: "0.00",
-      roomExpense: "0.00",
-      officeExpense: "0.00",
-      personalExpense: "50.00",
-      miscExpense: "25.00",
-      closing: "660.00",
-      creditCardCharges: "0.00",
-      user: "John Doe",
-    },
-    {
-      id: "TXN-1736726400000",
-      date: "2025-01-13",
-      openingQty: "800.00",
-      teaNasta: "40.00",
-      waterJar: "15.00",
-      lightBill: "80.00",
-      recharge: "0.00",
-      postOffice: "0.00",
-      customerDiscount: "0.00",
-      repairMaintenance: "150.00",
-      stationary: "20.00",
-      incentive: "100.00",
-      breakage: "0.00",
-      petrol: "150.00",
-      advance: "0.00",
-      excisePolice: "0.00",
-      desiBhada: "0.00",
-      otherPurchaseVoucherNo: "",
-      otherVendorPayment: "0.00",
-      differenceAmount: "0.00",
-      patilPetrol: "0.00",
-      roomExpense: "0.00",
-      officeExpense: "0.00",
-      personalExpense: "0.00",
-      miscExpense: "0.00",
-      closing: "245.00",
-      creditCardCharges: "0.00",
-      user: "Jane Smith",
-    },
-    {
-      id: "TXN-1736640000000",
-      date: "2025-01-12",
-      openingQty: "1500.00",
-      teaNasta: "0.00",
-      waterJar: "0.00",
-      lightBill: "0.00",
-      recharge: "0.00",
-      postOffice: "0.00",
-      customerDiscount: "0.00",
-      repairMaintenance: "0.00",
-      stationary: "0.00",
-      incentive: "0.00",
-      breakage: "0.00",
-      petrol: "0.00",
-      advance: "0.00",
-      excisePolice: "0.00",
-      desiBhada: "0.00",
-      otherPurchaseVoucherNo: "",
-      otherVendorPayment: "500.00",
-      differenceAmount: "0.00",
-      patilPetrol: "0.00",
-      roomExpense: "0.00",
-      officeExpense: "0.00",
-      personalExpense: "0.00",
-      miscExpense: "0.00",
-      closing: "1000.00",
-      creditCardCharges: "0.00",
-      user: "John Doe",
-    },
+   {
+    id: "TXN-1736899200000",
+    date: "2025-01-15",
+    openingQty: "1000.00",
+    teaNasta: "50.00",
+    waterJar: "20.00",
+    lightBill: "100.00",
+    recharge: "0.00",
+    postOffice: "0.00",
+    customerDiscount: "0.00",
+    repairMaintenance: "0.00",
+    stationary: "30.00",
+    incentive: "0.00",
+    breakage: "0.00",
+    breakageName: "", // Add this
+    petrol: "200.00",
+    advance: "0.00",
+    advanceName: "", // Add this
+    excisePolice: "0.00",
+    desiBhada: "0.00",
+    otherPurchaseVoucherNo: "",
+    otherVendorPayment: "0.00",
+    differenceAmount: "0.00",
+    patilPetrol: "0.00",
+    roomExpense: "0.00",
+    officeExpense: "50.00",
+    personalExpense: "0.00",
+    miscExpense: "0.00",
+    closing: "850.00",
+    creditCardCharges: "0.00",
+    user: "John Doe",
+  }
   ];
 
   const [transactions, setTransactions] = useState<Transaction[]>(dummyTransactions);
