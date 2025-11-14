@@ -571,7 +571,7 @@ export default function CashTally({
                             <input
                               type="number"
                               name={denomination.name}
-                              value={formData[denomination.name]}
+                              value={formData[denomination.name as keyof typeof formData]}
                               onChange={handleChange}
                               placeholder="0"
                               min="0"

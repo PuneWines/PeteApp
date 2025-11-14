@@ -5,6 +5,8 @@ import PettyCashModal from '../components/PettyCashModal';
 
 interface Transaction {
   id?: string;
+   breakageName: string;  // Add this
+  advanceName: string;
   openingQty: string;
   teaNasta: string;
   waterJar: string;
