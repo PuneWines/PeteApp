@@ -60,11 +60,6 @@ export default function PettyCash({ onClose = () => {} }: PettyCashProps) {
     onClose();
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      setTransactions(transactions.filter((t) => t.id !== id));
-    }
-  };
 
   return (
     <div className="space-y-6">
